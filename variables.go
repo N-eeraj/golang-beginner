@@ -8,8 +8,10 @@ var outerVar = 10
 func main() {
 	fmt.Println(outerVar)
 
-	var uninitialized string
-	fmt.Println(uninitialized)
+	var uninitializedString string // empty string
+	var uninitializedInt int // 0
+	fmt.Println(uninitializedString)
+	fmt.Println(uninitializedInt)
 
 	// inferred types
 	var stringVar1 = "String"

@@ -3,6 +3,7 @@ package main
 import "fmt"
 
 func main() {
+	fmt.Print("Inline Print\n") // without formatting
 	fmt.Printf("Inline Print\n") // with formatting
 	fmt.Println("Multi-line Print")
 
@@ -23,4 +24,10 @@ func main() {
 	fmt.Printf("Enter Num: ")
 	fmt.Scanln(&int2)
 	fmt.Printf("str2 is %s & int2 is %d\n", str2, int2)
+
+	// Formatted print
+	fmt.Printf("Var %v\n", 123) // variable
+	fmt.Printf("Quoted var %q\n", "John") // quoted
+	fmt.Printf("Float %f\n", 5.5) // float
+	fmt.Printf("Rounded Float %0.2f\n", 5.5) // float rounded to 2 decimal points
 }

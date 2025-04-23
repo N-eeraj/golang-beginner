@@ -27,7 +27,7 @@ func main() {
 
 	words := []string {"go", "is", "fun"}
 	for index, word := range words {
-			fmt.Println(index, word)
+		fmt.Println(index, word)
 	}
 
 }
