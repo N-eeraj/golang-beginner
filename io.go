@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"os"
+	"fmt"
+	"bufio"
+	"strings"
+)
 
 func main() {
 	fmt.Print("Inline Print\n") // without formatting
@@ -30,4 +35,17 @@ func main() {
 	fmt.Printf("Quoted var %q\n", "John") // quoted
 	fmt.Printf("Float %f\n", 5.5) // float
 	fmt.Printf("Rounded Float %0.2f\n", 5.5) // float rounded to 2 decimal points
+
+	input1 := readLine("Enter a line: ")
+	fmt.Println(input1)
+	input2 := readLine("Enter another line: ")
+	fmt.Println(input2)
+}
+
+// custom function to read line input
+func readLine(prompt string) string {
+	fmt.Print(prompt) // message to print prior to input
+	reader := bufio.NewReader(os.Stdin) // creating a reader
+	input, _ := reader.ReadString('\n') // read entered input up to a new-line
+	return strings.TrimSpace(input) // return trimmed input
 }
