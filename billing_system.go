@@ -24,6 +24,29 @@ type bill struct {
 }
 
 // show items in current bill
+func (b *bill) showBillItems () {
+	header := fmt.Sprintf("| Sl.| %-25v| %7v | %8v | %9v |", "Dish", "Price", "Quantity", "Total")
+	printLine := func() {
+		for i:= 0; i < len(header); i++ {
+			fmt.Printf("-")
+		}
+		fmt.Printf("\n")
+	}
+	printLine()
+	fmt.Println(header)
+	printLine()
+	grandTotal := 0.0
+	for index, dish := range b.items {
+		total := dish.price * float64(dish.quantity)
+		grandTotal += total
+		fmt.Printf("| %2v | %-25v| $%6v | %8v | $%8.2f |\n", index + 1, dish.name, dish.price, dish.quantity, total)
+	}
+	printLine()
+	fmt.Printf("| %-50v | $%8.2f |\n", "Grand Total", grandTotal)
+	printLine()
+}
+
+// show items in current bill
 func (b *bill) addBillItem (item billItem) {
 	foundIndex := -1
 	for index, billItem := range b.items {
@@ -36,12 +59,8 @@ func (b *bill) addBillItem (item billItem) {
 	} else {
 		b.items[foundIndex].quantity += item.quantity
 	}
+	fmt.Printf("Added %v %v to the bill\n", item.quantity, item.name)
 	b.showBillItems()
-}
-
-// show items in current bill
-func (b *bill) showBillItems () {
-	fmt.Println(*b)
 }
 
 // common variables
@@ -179,6 +198,17 @@ func getQuantity() uint64 {
 	return uint64(quantity)
 }
 
+func addItem(bill *bill, dishIndex int) {
+	dish := dishMenu[dishIndex]
+	quantity := getQuantity()
+	item := billItem{
+		name: dish.name,
+		price: dish.price,
+		quantity: quantity,
+	}
+	bill.addBillItem(item)
+}
+
 // function that handles billing
 func createBill() {
 	invoice := createInvoice()
@@ -195,14 +225,7 @@ func createBill() {
 				if dishMenuInput == -1 {
 					continue
 				}
-				dish := dishMenu[dishMenuInput]
-				quantity := getQuantity()
-				item := billItem{
-					name: dish.name,
-					price: dish.price,
-					quantity: quantity,
-				}
-				bill.addBillItem(item)
+				addItem(&bill, dishMenuInput)
 			case 2:
 				bill.showBillItems()
 			case 3:
