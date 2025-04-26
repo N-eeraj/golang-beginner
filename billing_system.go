@@ -24,7 +24,7 @@ type bill struct {
 }
 
 // show items in current bill
-func (b *bill) showBillItems () {
+func (b *bill) view () {
 	header := fmt.Sprintf("| Sl.| %-25v| %7v | %8v | %9v |", "Dish", "Price", "Quantity", "Total")
 	printLine := func() {
 		for i:= 0; i < len(header); i++ {
@@ -32,6 +32,8 @@ func (b *bill) showBillItems () {
 		}
 		fmt.Printf("\n")
 	}
+	printLine()
+	fmt.Printf("| Bill No: %-53v |\n", b.invoice)
 	printLine()
 	fmt.Println(header)
 	printLine()
@@ -60,13 +62,14 @@ func (b *bill) addBillItem (item billItem) {
 		b.items[foundIndex].quantity += item.quantity
 	}
 	fmt.Printf("Added %v %v to the bill\n", item.quantity, item.name)
-	b.showBillItems()
+	b.view()
 }
 
 // common variables
 var reader = bufio.NewReader(os.Stdin)
 var mainMenu = [...]string{
 	"New Bill",
+	"Show Bills",
 	"Exit",
 }
 var billMenu = [...]string{
@@ -106,7 +109,7 @@ var dishMenu = [...]dish{
 		price: 4.25,
 	},
 }
-var billsGenerated = 0
+var savedBills = []bill{}
 
 // common input function
 func scanner(prompt string) string {
@@ -145,7 +148,7 @@ func showBillMenu() int {
 
 // returns an invoice number based on bills generated
 func createInvoice() string {
-	billNo := billsGenerated + 1
+	billNo := len(savedBills) + 1
 	return "GBI" + strings.Repeat("0", 5 - len(strconv.Itoa(billNo))) + strconv.Itoa(billNo)
 }
 
@@ -216,8 +219,9 @@ func createBill() {
 		invoice: invoice,
 		items: []billItem{},
 	}
-	fmt.Printf("Creating Bill: %v\n", bill.invoice)
+	fmt.Printf("\nCreating Bill: %v\n", bill.invoice)
 	for true {
+		fmt.Println()
 		billMenuInput := showBillMenu()
 		switch billMenuInput {
 			case 1:
@@ -227,15 +231,44 @@ func createBill() {
 				}
 				addItem(&bill, dishMenuInput)
 			case 2:
-				bill.showBillItems()
+				bill.view()
 			case 3:
-				bill.showBillItems()
+				bill.view()
 			case 4:
-				billsGenerated++
+				if len(bill.items) == 0 {
+					fmt.Println("No items to save")
+					continue
+				}
+				savedBills = append(savedBills, bill)
 				fmt.Printf("Saved Bill: %v\n", invoice)
 				return
 			case 5:
 				return
+		}
+	}
+}
+
+func showSavedBills() {
+	fmt.Println()
+	if len(savedBills) == 0 {
+		fmt.Println("No Saved Bills")
+	} else {
+		for index, bill := range savedBills {
+			fmt.Printf("%v. %v\n", index + 1, bill.invoice)
+		}
+		fmt.Println("Enter 'x' to go back")
+		for true {
+			invoiceMenuInput := scanner("Select bill to view: ")
+			if invoiceMenuInput == "x" {
+				break
+			}
+			selection, error := strconv.Atoi(invoiceMenuInput)
+			if error != nil || selection <=0 || selection > len(savedBills) {
+				fmt.Println("Invalid Selection")
+			} else {
+				savedBills[selection - 1].view()
+				break
+			}
 		}
 	}
 }
@@ -249,8 +282,11 @@ func main() {
 			case 1:
 				createBill()
 			case 2:
+				showSavedBills()
+			case 3:
 				fmt.Println("Thank you for using Go Bill, have a nice day")
 				return
 		}
+		fmt.Println()
 	}
 }
