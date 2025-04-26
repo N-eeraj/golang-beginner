@@ -48,7 +48,7 @@ func (b *bill) view () {
 	printLine()
 }
 
-// show items in current bill
+// find & add item to bill items
 func (b *bill) addBillItem (item billItem) {
 	foundIndex := -1
 	for index, billItem := range b.items {
@@ -63,6 +63,70 @@ func (b *bill) addBillItem (item billItem) {
 	}
 	fmt.Printf("Added %v %v to the bill\n", item.quantity, item.name)
 	b.view()
+}
+
+func (b *bill) updateBillItem(itemIndex int, quantity uint64) {
+	b.items[itemIndex].quantity = quantity
+	fmt.Printf("Updated %v to %v\n", b.items[itemIndex].name, quantity)
+	b.view()
+}
+
+// find & remove item from bill
+func (b *bill) removeBillItem(itemIndex int) {
+	item := b.items[itemIndex]
+	b.items = append(b.items[:itemIndex], b.items[itemIndex + 1:]...)
+	fmt.Printf("Removed %v from the bill\n", item.name)
+	b.view()
+}
+
+// handle adding dish & prompting quantity
+func (b *bill) addItem(dishIndex int) {
+	dish := dishMenu[dishIndex]
+	quantity := getQuantity()
+	item := billItem{
+		name: dish.name,
+		price: dish.price,
+		quantity: quantity,
+	}
+	b.addBillItem(item)
+}
+
+func (b *bill) updateItem() {
+	for {
+		b.view()
+		fmt.Println("Enter 'x' to cancel")
+		updateIndex := scanner("Select item to update: ")
+		if updateIndex == "x" {
+			break
+		}
+		selection, error := strconv.Atoi(updateIndex)
+		if error != nil || selection <=0 || selection > len(b.items) {
+			fmt.Println("Invalid Selection")
+		} else {
+			quantity := getQuantity()
+			b.updateBillItem(selection - 1, quantity)
+			break
+		}
+	}
+}
+
+// view bill & prompt for item to remove
+func (b *bill) removeItem() {
+	for {
+		b.view()
+		fmt.Println("Enter 'x' to cancel")
+		deleteIndex := scanner("Select item to remove: ")
+		if deleteIndex == "x" {
+			break
+		}
+		selection, error := strconv.Atoi(deleteIndex)
+		if error != nil || selection <=0 || selection > len(b.items) {
+			fmt.Println("Invalid Selection")
+		} else {
+			b.removeBillItem(selection - 1)
+			break
+		}
+	}
 }
 
 // common variables
@@ -147,9 +211,15 @@ func showBillMenu() int {
 }
 
 // returns an invoice number based on bills generated
-func createInvoice() string {
+func createInvoice() bill {
 	billNo := len(savedBills) + 1
-	return "GBI" + strings.Repeat("0", 5 - len(strconv.Itoa(billNo))) + strconv.Itoa(billNo)
+	invoice := "GBI" + strings.Repeat("0", 5 - len(strconv.Itoa(billNo))) + strconv.Itoa(billNo)
+	bill := bill{
+		invoice: invoice,
+		items: []billItem{},
+	}
+	fmt.Printf("\nCreating Bill: %v\n", bill.invoice)
+	return bill
 }
 
 // show all items available
@@ -175,7 +245,7 @@ func displayDishMenu() {
 func showDishMenu () int {
 	displayDishMenu()
 
-	for true {
+	for {
 		dishMenuInput := scanner("Select your option: ")
 		if dishMenuInput == "x" {
 			return -1
@@ -201,26 +271,16 @@ func getQuantity() uint64 {
 	return uint64(quantity)
 }
 
-func addItem(bill *bill, dishIndex int) {
-	dish := dishMenu[dishIndex]
-	quantity := getQuantity()
-	item := billItem{
-		name: dish.name,
-		price: dish.price,
-		quantity: quantity,
-	}
-	bill.addBillItem(item)
+func saveBill(bill bill) {
+	savedBills = append(savedBills, bill)
+	fmt.Printf("Saved Bill: %v\n", bill.invoice)
 }
 
 // function that handles billing
 func createBill() {
-	invoice := createInvoice()
-	bill := bill{
-		invoice: invoice,
-		items: []billItem{},
-	}
-	fmt.Printf("\nCreating Bill: %v\n", bill.invoice)
-	for true {
+	bill := createInvoice()
+
+	for {
 		fmt.Println()
 		billMenuInput := showBillMenu()
 		switch billMenuInput {
@@ -229,18 +289,25 @@ func createBill() {
 				if dishMenuInput == -1 {
 					continue
 				}
-				addItem(&bill, dishMenuInput)
+				bill.addItem(dishMenuInput)
 			case 2:
-				bill.view()
+				if len(bill.items) == 0 {
+					fmt.Println("No Items")
+					continue
+				}
+				bill.updateItem()
 			case 3:
-				bill.view()
+				if len(bill.items) == 0 {
+					fmt.Println("No Items")
+					continue
+				}
+				bill.removeItem()
 			case 4:
 				if len(bill.items) == 0 {
 					fmt.Println("No items to save")
 					continue
 				}
-				savedBills = append(savedBills, bill)
-				fmt.Printf("Saved Bill: %v\n", invoice)
+				saveBill(bill)
 				return
 			case 5:
 				return
@@ -248,6 +315,7 @@ func createBill() {
 	}
 }
 
+// list & view saved bills
 func showSavedBills() {
 	fmt.Println()
 	if len(savedBills) == 0 {
@@ -257,7 +325,7 @@ func showSavedBills() {
 			fmt.Printf("%v. %v\n", index + 1, bill.invoice)
 		}
 		fmt.Println("Enter 'x' to go back")
-		for true {
+		for {
 			invoiceMenuInput := scanner("Select bill to view: ")
 			if invoiceMenuInput == "x" {
 				break
@@ -276,7 +344,7 @@ func showSavedBills() {
 func main() {
 	fmt.Println("Welcome to Go Bill")
 	fmt.Println("------------------")
-	for true {
+	for {
 		mainMenuInput := showMainMenu()
 		switch mainMenuInput {
 			case 1:
